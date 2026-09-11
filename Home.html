@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Margin — step-by-step calculus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EEF1F0;
+    --paper-line: #C7CFC9;
+    --ink: #16233B;
+    --ink-soft: #4B5A6B;
+    --teal: #1F6F5C;
+    --teal-deep: #164F42;
+    --rust: #B4592B;
+    --card: #F7F9F8;
+    --border: #D3D9D5;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body{
+    background-image:
+      repeating-linear-gradient(to bottom, transparent, transparent 35px, var(--paper-line) 35px, var(--paper-line) 36px);
+    background-attachment: local;
+  }
+  .mono{ font-family: 'JetBrains Mono', monospace; }
+
+  .wrap{
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 56px 24px 120px;
+  }
+
+  header.brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom: 64px;
+  }
+  header.brand .mark{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 20px;
+    color: var(--teal-deep);
+    border: 1.5px solid var(--teal-deep);
+    width: 30px; height: 30px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius: 3px;
+    flex-shrink:0;
+  }
+  header.brand .name{
+    font-size: 17px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  header.brand .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-left: auto;
+  }
+
+  h1{
+    font-size: 40px;
+    line-height: 1.15;
+    font-weight: 600;
+    margin: 0 0 14px;
+    max-width: 20ch;
+  }
+  .lede{
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    line-height: 1.55;
+    margin: 0 0 40px;
+  }
+
+  .mode-row{
+    display:flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .mode-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 7px 14px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--ink-soft);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .mode-btn:hover{ border-color: var(--teal); color: var(--ink); }
+  .mode-btn.active{
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+
+  .solve-row{
+    display:flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .input-shell{
+    flex: 1;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 0 14px;
+    transition: border-color .15s;
+  }
+  .input-shell:focus-within{ border-color: var(--teal); }
+  .input-shell .prefix{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--teal-deep);
+    white-space: nowrap;
+  }
+  #expr{
+    flex:1;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 14px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    color: var(--ink);
+    min-width: 0;
+  }
+  #expr::placeholder{ color: #9AA6A1; }
+
+  #solveBtn{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--teal);
+    color: #F5F8F6;
+    border: none;
+    border-radius: 4px;
+    padding: 0 22px;
+    cursor: pointer;
+    transition: background .15s;
+    white-space:nowrap;
+  }
+  #solveBtn:hover{ background: var(--teal-deep); }
+  #solveBtn:active{ transform: translateY(1px); }
+
+  .examples{
+    margin-top: 16px;
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .example-chip{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .example-chip:hover{ border-color: var(--teal); color: var(--teal-deep); }
+
+  .error-box{
+    margin-top: 22px;
+    border: 1.5px solid var(--rust);
+    background: #FBEFE9;
+    color: #7A3115;
+    padding: 14px 16px;
+    border-radius: 4px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    display:none;
+  }
+
+  .results{
+    margin-top: 56px;
+    display:none;
+  }
+  .problem-restate{
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .problem-expr{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 22px;
+    color: var(--ink);
+    padding-bottom: 28px;
+    border-bottom: 1.5px solid var(--border);
+    margin-bottom: 6px;
+  }
+
+  .steps-label{
+    font-size: 13px;
+    text-transform: none;
+    color: var(--ink-soft);
+    margin: 32px 0 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .steps{
+    position: relative;
+    margin-left: 4px;
+    padding-left: 34px;
+    border-left: 1.5px solid var(--border);
+  }
+  .step{
+    position: relative;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child{ border-bottom: none; }
+  .step .num{
+    position: absolute;
+    left: -34px;
+    top: 19px;
+    width: 24px;
+    text-align: center;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--teal-deep);
+    background: var(--paper);
+  }
+  .step .rule{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--teal-deep);
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+  }
+  .step .transform{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--ink);
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .step .transform .arrow{ color: var(--ink-soft); font-size: 14px; }
+  .step .detail{
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    max-width: 52ch;
+  }
+
+  .answer-box{
+    margin-top: 8px;
+    border: 1.5px solid var(--rust);
+    border-radius: 4px;
+    padding: 22px 24px;
+    background: #FBF3EE;
+  }
+  .answer-box .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--rust);
+    margin-bottom: 8px;
+  }
+  .answer-box .value{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: var(--ink);
+  }
+
+  .unsupported-box{
+    margin-top: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 22px;
+    background: var(--card);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .unsupported-box .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  footer{
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  footer code{
+    font-family:'JetBrains Mono', monospace;
+    background: var(--card);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  @media (max-width: 520px){
+    h1{ font-size: 30px; }
+    .solve-row{ flex-direction: column; }
+    #solveBtn{ padding: 14px 0; }
+    .steps{ padding-left: 26px; }
+    .step .num{ left: -26px; }
+  }
+</>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brand">
+    <div class="mark">∫</div>
+    <div class="name">Margin</div>
+    <div class="tag">stepwise calculus</div>
+  </header>
+
+  <h1>Work through a derivative or integral, one rule at a time.</h1>
+  <p class="lede">Type a function of x. Margin parses it, picks the right rule at each stage, and shows the full reasoning — not just the final answer.</p>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="modeDeriv">d/dx — derivative</button>
+    <button class="mode-btn" id="modeInt">∫ dx — integral</button>
+  </div>
+
+  <div class="solve-row">
+    <div class="input-shell">
+      <span class="prefix mono" id="prefixLabel">d/dx</span>
+      <input id="expr" class="mono" type="text" value="x^3 + 2x^2 - 5x + 1" placeholder="e.g. sin(x)*x^2" autocomplete="off" spellcheck="false">
+    </div>
+    <button id="solveBtn">Solve</button>
+  </div>
+
+  <div class="examples" id="examples"></div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="results" id="results">
+    <div class="problem-restate" id="problemLabel">Differentiating</div>
+    <div class="problem-expr mono" id="problemExpr"></div>
+
+    <div class="steps-label" id="stepsLabel"></div>
+    <div class="steps" id="steps"></div>
+
+    <div id="answerArea"></div>
+  </div>
+
+  <footer>
+    Supports <code>+ - * / ^</code>, parentheses, and <code>sin cos tan ln sqrt exp</code>, with implicit multiplication like <code>2x</code> or <code>3sin(x)</code>. Derivative mode covers sum/difference, product, quotient, power, and chain rules. Integral mode covers sums, constant multiples, the power rule, and linear-argument substitution (<code>sin(2x)</code>, <code>(2x+1)^4</code>) — products, quotients of two functions, and non-linear substitutions aren't attempted, and are flagged rather than guessed at.
+  </footer>
+
+</div>
+
+<script>
+/* ====================== ENGINE ====================== */
+// ---------- Tokenizer ----------
+const FUNCS = ['sin','cos','tan','sqrt','ln','log','exp'];
+function tokenize(input){
+  const s = input.replace(/\s+/g,'');
+  const toks = [];
+  let i = 0;
+  while(i < s.length){
+    const c = s[i];
+    if(/[0-9.]/.test(c)){
+      let j = i;
+      while(j<s.length && /[0-9.]/.test(s[j])) j++;
+      toks.push({type:'num', value: parseFloat(s.slice(i,j))});
+      i = j;
+    } else if(/[a-zA-Z]/.test(c)){
+      let matched = null;
+      for(const f of FUNCS){
+        if(s.slice(i, i+f.length).toLowerCase() === f){ matched = f; break; }
+      }
+      if(matched){
+        toks.push({type:'func', name: matched});
+        i += matched.length;
+      } else if(s.slice(i,i+2).toLowerCase() === 'pi'){
+        toks.push({type:'const', name:'pi'});
+        i += 2;
+      } else if(c.toLowerCase() === 'e'){
+        toks.push({type:'const', name:'e'});
+        i += 1;
+      } else if(c.toLowerCase() === 'x'){
+        toks.push({type:'var'});
+        i += 1;
+      } else {
+        throw new Error(`Unrecognized symbol "${c}"`);
+      }
+    } else if('+-*/^()'.includes(c)){
+      toks.push({type:c});
+      i++;
+    } else {
+      throw new Error(`Unrecognized character "${c}"`);
+    }
+  }
+  return toks;
+}
+
+// ---------- Parser ----------
+function parse(input){
+  const toks = tokenize(input);
+  let pos = 0;
+  const peek = () => toks[pos];
+  const consume = () => toks[pos++];
+
+  function canStartFactor(t){
+    if(!t) return false;
+    return ['num','var','const','func','('].includes(t.type);
+  }
+
+  function parseExpression(){
+    let node = parseTerm();
+    while(peek() && (peek().type === '+' || peek().type === '-')){
+      const op = consume().type;
+      const rhs = parseTerm();
+      node = {type: op === '+' ? 'add' : 'sub', a: node, b: rhs};
+    }
+    return node;
+  }
+  function parseTerm(){
+    let node = parseUnary();
+    while(true){
+      const t = peek();
+      if(t && (t.type === '*' || t.type === '/')){
+        const op = consume().type;
+        const rhs = parseUnary();
+        node = {type: op === '*' ? 'mul' : 'div', a: node, b: rhs};
+      } else if(canStartFactor(t)){
+        const rhs = parseUnary();
+        node = {type:'mul', a: node, b: rhs};
+      } else break;
+    }
+    return node;
+  }
+  function parseUnary(){
+    if(peek() && peek().type === '-'){ consume(); return {type:'neg', a: parseUnary()}; }
+    if(peek() && peek().type === '+'){ consume(); return parseUnary(); }
+    return parsePower();
+  }
+  function parsePower(){
+    const base = parsePrimary();
+    if(peek() && peek().type === '^'){
+      consume();
+      const exp = parseUnary();
+      return {type:'pow', base, exp};
+    }
+    return base;
+  }
+  function parsePrimary(){
+    const t = peek();
+    if(!t) throw new Error('Unexpected end of expression');
+    if(t.type === 'num'){ consume(); return {type:'num', value: t.value}; }
+    if(t.type === 'var'){ consume(); return {type:'var'}; }
+    if(t.type === 'const'){ consume(); return {type:'const', name: t.name}; }
+    if(t.type === 'func'){
+      consume();
+      if(!peek() || peek().type !== '(') throw new Error(`Expected "(" after ${t.name}`);
+      consume();
+      const arg = parseExpression();
+      if(!peek() || peek().type !== ')') throw new Error('Expected ")"');
+      consume();
+      if(t.name === 'sqrt') return {type:'pow', base: arg, exp: {type:'num', value: 0.5}};
+      if(t.name === 'exp') return {type:'pow', base: {type:'const', name:'e'}, exp: arg};
+      if(t.name === 'log') return {type:'func', name:'ln', arg};
+      return {type:'func', name: t.name, arg};
+    }
+    if(t.type === '('){
+      consume();
+      const node = parseExpression();
+      if(!peek() || peek().type !== ')') throw new Error('Expected ")"');
+      consume();
+      return node;
+    }
+    throw new Error(`Unexpected token "${t.type}"`);
+  }
+
+  const result = parseExpression();
+  if(pos < toks.length) throw new Error('Unexpected trailing input');
+  return result;
+}
+
+// ---------- Helpers ----------
+function containsVar(node){
+  switch(node.type){
+    case 'var': return true;
+    case 'num': case 'const': return false;
+    case 'neg': return containsVar(node.a);
+    case 'add': case 'sub': case 'mul': case 'div':
+      return containsVar(node.a) || containsVar(node.b);
+    case 'pow': return containsVar(node.base) || containsVar(node.exp);
+    case 'func': return containsVar(node.arg);
+  }
+}
+const num = v => ({type:'num', value:v});
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a || 1; }
+function evalConst(node){
+  switch(node.type){
+    case 'num': return node.value;
+    case 'const': return node.name === 'e' ? Math.E : Math.PI;
+    case 'neg': return -evalConst(node.a);
+    case 'add': return evalConst(node.a) + evalConst(node.b);
+    case 'sub': return evalConst(node.a) - evalConst(node.b);
+    case 'mul': return evalConst(node.a) * evalConst(node.b);
+    case 'div': return evalConst(node.a) / evalConst(node.b);
+    case 'pow': return Math.pow(evalConst(node.base), evalConst(node.exp));
+    case 'func': {
+      const v = evalConst(node.arg);
+      if(node.name === 'sin') return Math.sin(v);
+      if(node.name === 'cos') return Math.cos(v);
+      if(node.name === 'tan') return Math.tan(v);
+      if(node.name === 'ln') return Math.log(v);
+    }
+  }
+  return NaN;
+}
+
+// ---------- Simplify ----------
+function simplify(node){
+  if(node.type === 'num' || node.type === 'var' || node.type === 'const') return node;
+  if(node.type === 'neg'){
+    const a = simplify(node.a);
+    if(a.type === 'num') return num(-a.value);
+    if(a.type === 'neg') return a.a;
+    return {type:'neg', a};
+  }
+  if(node.type === 'add' || node.type === 'sub'){
+    let a = simplify(node.a), b = simplify(node.b);
+    if(a.type === 'num' && b.type === 'num') return num(node.type === 'add' ? a.value + b.value : a.value - b.value);
+    if(node.type === 'add'){
+      if(a.type === 'num' && a.value === 0) return b;
+      if(b.type === 'num' && b.value === 0) return a;
+      if(b.type === 'num' && b.value < 0) return simplify({type:'sub', a, b: num(-b.value)});
+      if(b.type === 'neg') return simplify({type:'sub', a, b: b.a});
+    } else {
+      if(b.type === 'num' && b.value === 0) return a;
+      if(a.type === 'num' && a.value === 0) return simplify({type:'neg', a: b});
+      if(b.type === 'num' && b.value < 0) return simplify({type:'add', a, b: num(-b.value)});
+      if(b.type === 'neg') return simplify({type:'add', a, b: b.a});
+    }
+    return {type: node.type, a, b};
+  }
+  if(node.type === 'mul'){
+    let a = simplify(node.a), b = simplify(node.b);
+    if((a.type==='num' && a.value===0) || (b.type==='num' && b.value===0)) return num(0);
+    if(a.type === 'num' && a.value === 1) return b;
+    if(b.type === 'num' && b.value === 1) return a;
+    if(a.type === 'num' && a.value === -1) return simplify({type:'neg', a:b});
+    if(b.type === 'num' && b.value === -1) return simplify({type:'neg', a:a});
+    if(a.type === 'num' && b.type === 'num') return num(a.value * b.value);
+    if(a.type === 'neg' && b.type === 'neg') return simplify({type:'mul', a:a.a, b:b.a});
+    if(a.type === 'neg') return simplify({type:'neg', a:{type:'mul', a:a.a, b}});
+    if(b.type === 'neg') return simplify({type:'neg', a:{type:'mul', a, b:b.a}});
+    // fold nested numeric coefficients together: c1*(c2*rest) -> (c1*c2)*rest
+    if(a.type === 'num' && b.type === 'mul' && b.a.type === 'num') return simplify({type:'mul', a: num(a.value*b.a.value), b: b.b});
+    if(b.type === 'num' && a.type === 'mul' && a.a.type === 'num') return simplify({type:'mul', a: num(a.a.value*b.value), b: a.b});
+    // fold a numeric factor into a division: c*(p/q) -> (c*p)/q
+    if(a.type === 'num' && b.type === 'div') return simplify({type:'div', a:{type:'mul', a, b:b.a}, b: b.b});
+    if(b.type === 'num' && a.type === 'div') return simplify({type:'div', a:{type:'mul', a:a.a, b}, b: a.b});
+    if(a.type === 'div') return simplify({type:'div', a:{type:'mul', a:a.a, b}, b: a.b});
+    if(b.type === 'div') return simplify({type:'div', a:{type:'mul', a, b:b.a}, b: b.b});
+    // put numeric constant first
+    if(b.type === 'num' && a.type !== 'num') return {type:'mul', a:b, b:a};
+    return {type:'mul', a, b};
+  }
+  if(node.type === 'div'){
+    let a = simplify(node.a), b = simplify(node.b);
+    if(a.type === 'num' && a.value === 0) return num(0);
+    if(b.type === 'num' && b.value === 1) return a;
+    if(b.type === 'num' && b.value === -1) return simplify({type:'neg', a});
+    if(a.type === 'num' && b.type === 'num' && b.value !== 0 && Number.isInteger(a.value/b.value)) return num(a.value/b.value);
+    if(a.type === 'neg' && b.type === 'neg') return simplify({type:'div', a:a.a, b:b.a});
+    if(a.type === 'neg') return simplify({type:'neg', a:{type:'div', a:a.a, b}});
+    if(b.type === 'neg') return simplify({type:'neg', a:{type:'div', a, b:b.a}});
+    // chained division by constants: (p/q)/r -> p/(q*r)
+    if(a.type === 'div' && a.b.type === 'num' && b.type === 'num') return simplify({type:'div', a: a.a, b: num(a.b.value*b.value)});
+    // fold a numeric coefficient in the numerator with a numeric denominator
+    if(a.type === 'mul' && a.a.type === 'num' && b.type === 'num'){
+      const g = gcd(a.a.value, b.value);
+      if(g > 1) return simplify({type:'div', a:{type:'mul', a: num(a.a.value/g), b: a.b}, b: num(b.value/g)});
+    }
+    return {type:'div', a, b};
+  }
+  if(node.type === 'pow'){
+    let base = simplify(node.base), exp = simplify(node.exp);
+    if(exp.type === 'num' && exp.value === 0) return num(1);
+    if(exp.type === 'num' && exp.value === 1) return base;
+    if(base.type === 'num' && base.value === 1) return num(1);
+    if(base.type === 'num' && base.value === 0) return num(0);
+    if(base.type === 'num' && exp.type === 'num' && Number.isInteger(exp.value) && exp.value >= 0) return num(Math.pow(base.value, exp.value));
+    return {type:'pow', base, exp};
+  }
+  if(node.type === 'func'){
+    let arg = simplify(node.arg);
+    if(node.name === 'ln' && arg.type === 'const' && arg.name === 'e') return num(1);
+    if(node.name === 'ln' && arg.type === 'num' && arg.value === 1) return num(0);
+    return {type:'func', name: node.name, arg};
+  }
+  return node;
+}
+function fullSimplify(node){
+  let cur = node;
+  for(let k=0;k<8;k++){
+    const next = simplify(cur);
+    if(toStr(next) === toStr(cur)) return next;
+    cur = next;
+  }
+  return cur;
+}
+
+// ---------- Print ----------
+function prec(node){
+  switch(node.type){
+    case 'add': case 'sub': return 1;
+    case 'mul': case 'div': return 2;
+    case 'neg': return 2.5;
+    case 'pow': return 4;
+    default: return 5;
+  }
+}
+function fmtNum(v){
+  if(Number.isInteger(v)) return String(v);
+  return String(Math.round(v*10000)/10000);
+}
+function wrap(node, minPrec){
+  const s = toStr(node);
+  return prec(node) < minPrec ? `(${s})` : s;
+}
+function isNeg(node){
+  if(node.type === 'neg') return true;
+  if(node.type === 'num') return node.value < 0;
+  if(node.type === 'mul' && node.a.type === 'num') return node.a.value < 0;
+  if(node.type === 'div' && node.a.type === 'num') return node.a.value < 0;
+  return false;
+}
+function flipSign(node){
+  if(node.type === 'neg') return node.a;
+  if(node.type === 'num') return num(-node.value);
+  if(node.type === 'mul') return {type:'mul', a: num(-node.a.value), b: node.b};
+  if(node.type === 'div') return {type:'div', a: num(-node.a.value), b: node.b};
+  return {type:'neg', a: node};
+}
+function toStr(node){
+  switch(node.type){
+    case 'num': return node.value < 0 ? `-${fmtNum(-node.value)}` : fmtNum(node.value);
+    case 'var': return 'x';
+    case 'const': return node.name === 'pi' ? 'π' : 'e';
+    case 'neg': return `-${wrap(node.a, 1.5)}`;
+    case 'add': {
+      const A = toStr(node.a);
+      if(isNeg(node.b)) return `${A} - ${wrap(flipSign(node.b), 1)}`;
+      return `${A} + ${toStr(node.b)}`;
+    }
+    case 'sub': {
+      const A = toStr(node.a);
+      if(isNeg(node.b)) return `${A} + ${wrap(flipSign(node.b), 1)}`;
+      const B = wrap(node.b, 1.5);
+      return `${A} - ${B}`;
+    }
+    case 'mul': {
+      const a = node.a, b = node.b;
+      const As = wrap(a, 2), Bs = wrap(b, 2);
+      if(a.type === 'num' && b.type !== 'num' && !/^[0-9]/.test(Bs)) return `${As}${Bs}`;
+      return `${As}\u00B7${Bs}`;
+    }
+    case 'div': {
+      const As = wrap(node.a, 1.5);
+      const Bs = wrap(node.b, 2.5);
+      return `${As}/${Bs}`;
+    }
+    case 'pow': {
+      if(node.exp.type === 'num' && node.exp.value === 0.5) return `\u221A(${toStr(node.base)})`;
+      const baseS = wrap(node.base, 4.5);
+      const expS = wrap(node.exp, 0); // always show sub-expr for exponent, parens if compound via prec<4
+      const expWrapped = prec(node.exp) < 4 ? `(${toStr(node.exp)})` : toStr(node.exp);
+      return `${baseS}^${expWrapped}`;
+    }
+    case 'func': return `${node.name}(${toStr(node.arg)})`;
+  }
+}
+
+// ---------- Differentiate ----------
+function diff(node, steps){
+  switch(node.type){
+    case 'num': case 'const':
+      return num(0);
+    case 'var':
+      return num(1);
+    case 'neg': {
+      const d = diff(node.a, steps);
+      return {type:'neg', a: d};
+    }
+    case 'add': case 'sub': {
+      const before = toStr(node);
+      const da = diff(node.a, steps);
+      const db = diff(node.b, steps);
+      const result = {type: node.type, a: da, b: db};
+      steps.push({
+        rule: node.type === 'add' ? 'Sum Rule' : 'Difference Rule',
+        before,
+        after: toStr(fullSimplify(result)),
+        detail: `The derivative of a ${node.type === 'add' ? 'sum' : 'difference'} is the ${node.type === 'add' ? 'sum' : 'difference'} of the derivatives: (f ${node.type==='add'?'+':'-'} g)' = f' ${node.type==='add'?'+':'-'} g'.`
+      });
+      return result;
+    }
+    case 'mul': {
+      const before = toStr(node);
+      const aConst = !containsVar(node.a), bConst = !containsVar(node.b);
+      if(aConst){
+        const db = diff(node.b, steps);
+        const result = {type:'mul', a: node.a, b: db};
+        steps.push({rule:'Constant Multiple Rule', before, after: toStr(fullSimplify(result)),
+          detail:`A constant factor carries through: (c\u00B7f)' = c\u00B7f'.`});
+        return result;
+      } else if(bConst){
+        const da = diff(node.a, steps);
+        const result = {type:'mul', a: node.b, b: da};
+        steps.push({rule:'Constant Multiple Rule', before, after: toStr(fullSimplify(result)),
+          detail:`A constant factor carries through: (f\u00B7c)' = c\u00B7f'.`});
+        return result;
+      } else {
+        const da = diff(node.a, steps);
+        const db = diff(node.b, steps);
+        const result = {type:'add', a:{type:'mul', a: da, b: node.b}, b:{type:'mul', a: node.a, b: db}};
+        steps.push({rule:'Product Rule', before, after: toStr(fullSimplify(result)),
+          detail:`(f\u00B7g)' = f'\u00B7g + f\u00B7g'.`});
+        return result;
+      }
+    }
+    case 'div': {
+      const before = toStr(node);
+      if(!containsVar(node.b)){
+        const da = diff(node.a, steps);
+        const result = {type:'div', a: da, b: node.b};
+        steps.push({rule:'Constant Multiple Rule', before, after: toStr(fullSimplify(result)),
+          detail:`Dividing by a constant: differentiate the numerator and keep the same denominator.`});
+        return result;
+      } else {
+        const da = diff(node.a, steps);
+        const db = diff(node.b, steps);
+        const numerAst = {type:'sub', a:{type:'mul', a: da, b: node.b}, b:{type:'mul', a: node.a, b: db}};
+        const denomAst = {type:'pow', base: node.b, exp: num(2)};
+        const result = {type:'div', a: numerAst, b: denomAst};
+        steps.push({rule:'Quotient Rule', before, after: toStr(fullSimplify(result)),
+          detail:`(f/g)' = (f'g - fg')/g\u00B2.`});
+        return result;
+      }
+    }
+    case 'pow': {
+      const before = toStr(node);
+      const baseHasVar = containsVar(node.base), expHasVar = containsVar(node.exp);
+      if(!expHasVar){
+        const n = node.exp;
+        const dbase = diff(node.base, steps);
+        const newExp = fullSimplify({type:'sub', a:n, b:num(1)});
+        const powered = {type:'pow', base: node.base, exp: newExp};
+        const result = {type:'mul', a:{type:'mul', a:n, b: powered}, b: dbase};
+        const isChain = baseHasVar && node.base.type !== 'var';
+        steps.push({rule: isChain ? 'Power Rule + Chain Rule' : 'Power Rule', before, after: toStr(fullSimplify(result)),
+          detail:`(u\u207F)' = n\u00B7u^(n-1)\u00B7u'.`});
+        return result;
+      } else if(!baseHasVar){
+        const du = diff(node.exp, steps);
+        const result = {type:'mul', a:{type:'mul', a: node, b:{type:'func', name:'ln', arg: node.base}}, b: du};
+        steps.push({rule:'Exponential Rule', before, after: toStr(fullSimplify(result)),
+          detail:`(a^u)' = a^u\u00B7ln(a)\u00B7u'.`});
+        return result;
+      } else {
+        steps.push({rule:'Unsupported', before, after: '?', detail:`Both the base and the exponent depend on x here \u2014 this needs logarithmic differentiation, which this tool doesn't cover yet.`});
+        return num(NaN);
+      }
+    }
+    case 'func': {
+      const before = toStr(node);
+      const du = diff(node.arg, steps);
+      let outer, ruleName;
+      if(node.name === 'sin'){ outer = {type:'func', name:'cos', arg: node.arg}; ruleName='Derivative of sin'; }
+      else if(node.name === 'cos'){ outer = {type:'neg', a:{type:'func', name:'sin', arg: node.arg}}; ruleName='Derivative of cos'; }
+      else if(node.name === 'tan'){ outer = {type:'div', a:num(1), b:{type:'pow', base:{type:'func',name:'cos',arg:node.arg}, exp:num(2)}}; ruleName='Derivative of tan'; }
+      else if(node.name === 'ln'){ outer = {type:'div', a:num(1), b: node.arg}; ruleName='Derivative of ln'; }
+      const result = {type:'mul', a: outer, b: du};
+      const isChain = node.arg.type !== 'var';
+      steps.push({rule: isChain ? `${ruleName} + Chain Rule` : ruleName, before, after: toStr(fullSimplify(result)),
+        detail: isChain ? `Differentiate the outer function, then multiply by the derivative of the inside (chain rule).` : `Standard derivative.`});
+      return result;
+    }
+  }
+}
+
+// ---------- Integrate (indefinite, common patterns) ----------
+function linearCoeffs(node){
+  if(node.type === 'var') return {a:1, b:0};
+  if(node.type === 'num') return {a:0, b:node.value};
+  if(node.type === 'neg'){ const c = linearCoeffs(node.a); if(!c) return null; return {a:-c.a, b:-c.b}; }
+  if(node.type === 'add'){ const c1=linearCoeffs(node.a), c2=linearCoeffs(node.b); if(!c1||!c2) return null; return {a:c1.a+c2.a, b:c1.b+c2.b}; }
+  if(node.type === 'sub'){ const c1=linearCoeffs(node.a), c2=linearCoeffs(node.b); if(!c1||!c2) return null; return {a:c1.a-c2.a, b:c1.b-c2.b}; }
+  if(node.type === 'mul'){
+    if(node.a.type === 'num'){ const c=linearCoeffs(node.b); if(!c) return null; return {a:node.a.value*c.a, b:node.a.value*c.b}; }
+    if(node.b.type === 'num'){ const c=linearCoeffs(node.a); if(!c) return null; return {a:node.b.value*c.a, b:node.b.value*c.b}; }
+    return null;
+  }
+  return null;
+}
+
+function integrate(node, steps){
+  switch(node.type){
+    case 'num': case 'const': {
+      const result = {type:'mul', a: node, b: {type:'var'}};
+      steps.push({rule:'Constant Rule', before: toStr(node), after: toStr(fullSimplify(result)), detail:'The integral of a constant c is c\u00B7x.'});
+      return {ok:true, result};
+    }
+    case 'var': {
+      const result = {type:'div', a:{type:'pow', base:{type:'var'}, exp:num(2)}, b:num(2)};
+      steps.push({rule:'Power Rule', before:'x', after: toStr(fullSimplify(result)), detail:'\u222Bx dx = x\u00B2/2.'});
+      return {ok:true, result};
+    }
+    case 'neg': {
+      const inner = integrate(node.a, steps);
+      if(!inner.ok) return inner;
+      return {ok:true, result: {type:'neg', a: inner.result}};
+    }
+    case 'add': case 'sub': {
+      const before = toStr(node);
+      const ra = integrate(node.a, steps);
+      if(!ra.ok) return ra;
+      const rb = integrate(node.b, steps);
+      if(!rb.ok) return rb;
+      const result = {type: node.type, a: ra.result, b: rb.result};
+      steps.push({rule: node.type === 'add' ? 'Sum Rule' : 'Difference Rule', before, after: toStr(fullSimplify(result)), detail:'Integrate each term separately.'});
+      return {ok:true, result};
+    }
+    case 'mul': {
+      const before = toStr(node);
+      const aConst = !containsVar(node.a), bConst = !containsVar(node.b);
+      if(aConst){
+        const rb = integrate(node.b, steps);
+        if(!rb.ok) return rb;
+        const result = {type:'mul', a: node.a, b: rb.result};
+        steps.push({rule:'Constant Multiple Rule', before, after: toStr(fullSimplify(result)), detail:'\u222Bc\u00B7f dx = c\u222Bf dx.'});
+        return {ok:true, result};
+      } else if(bConst){
+        const ra = integrate(node.a, steps);
+        if(!ra.ok) return ra;
+        const result = {type:'mul', a: node.b, b: ra.result};
+        steps.push({rule:'Constant Multiple Rule', before, after: toStr(fullSimplify(result)), detail:'\u222Bc\u00B7f dx = c\u222Bf dx.'});
+        return {ok:true, result};
+      }
+      return {ok:false, reason:`"${before}" multiplies two functions of x together \u2014 that generally needs integration by parts, which this tool doesn't attempt.`};
+    }
+    case 'div': {
+      const before = toStr(node);
+      if(!containsVar(node.b)){
+        const ra = integrate(node.a, steps);
+        if(!ra.ok) return ra;
+        const result = {type:'div', a: ra.result, b: node.b};
+        steps.push({rule:'Constant Multiple Rule', before, after: toStr(fullSimplify(result)), detail:'Dividing by a constant carries straight through the integral.'});
+        return {ok:true, result};
+      }
+      if(!containsVar(node.a)){
+        const lin = linearCoeffs(node.b);
+        if(lin && lin.a !== 0){
+          const result = {type:'div', a: {type:'mul', a: node.a, b:{type:'func', name:'ln', arg: node.b}}, b: num(lin.a)};
+          steps.push({rule: lin.a !== 1 ? 'Logarithmic Rule + u-substitution' : 'Logarithmic Rule', before, after: toStr(fullSimplify(result)),
+            detail:`\u222B1/u du = ln|u|, with u = ${toStr(node.b)} (assuming u > 0 here).`});
+          return {ok:true, result};
+        }
+      }
+      return {ok:false, reason:`"${before}" is a quotient of functions of x \u2014 that generally needs substitution or partial fractions, which this tool doesn't attempt.`};
+    }
+    case 'pow': {
+      const before = toStr(node);
+      const baseHasVar = containsVar(node.base), expHasVar = containsVar(node.exp);
+      if(expHasVar && !baseHasVar){
+        const lin = linearCoeffs(node.exp);
+        if(!lin || lin.a === 0) return {ok:false, reason:`"${before}" has a non-linear exponent \u2014 beyond this tool.`};
+        const lnBase = fullSimplify({type:'func', name:'ln', arg: node.base});
+        const denom = (lnBase.type === 'num' && lnBase.value === 1) ? num(lin.a) : {type:'mul', a:num(lin.a), b: lnBase};
+        const result = {type:'div', a: node, b: denom};
+        steps.push({rule: lin.a !== 1 ? 'Exponential Rule + u-substitution' : 'Exponential Rule', before, after: toStr(fullSimplify(result)),
+          detail:`\u222Ba^u du = a^u/ln(a), adjusted since du = ${fmtNum(lin.a)}\u00B7dx.`});
+        return {ok:true, result};
+      }
+      if(expHasVar && baseHasVar) return {ok:false, reason:`"${before}" has x in both the base and the exponent \u2014 beyond this tool.`};
+      const lin = linearCoeffs(node.base);
+      if(!lin) return {ok:false, reason:`"${before}" isn't a power of a simple linear expression \u2014 substitution is needed beyond this tool.`};
+      if(lin.a === 0){
+        const result = {type:'mul', a: node, b: {type:'var'}};
+        steps.push({rule:'Constant Rule', before, after: toStr(fullSimplify(result)), detail:'This term doesn\u2019t actually depend on x, so it integrates to (constant)\u00B7x.'});
+        return {ok:true, result};
+      }
+      const n = evalConst(node.exp);
+      let antideriv, ruleName, detail;
+      if(n === -1){
+        antideriv = {type:'func', name:'ln', arg: node.base};
+        ruleName = 'Logarithmic Rule';
+        detail = `\u222B1/u du = ln|u|, with u = ${toStr(node.base)} (assuming u > 0 here).`;
+      } else {
+        antideriv = {type:'div', a:{type:'pow', base: node.base, exp: num(n+1)}, b: num(n+1)};
+        ruleName = 'Power Rule';
+        detail = `\u222Buⁿ du = u^(n+1)/(n+1), with u = ${toStr(node.base)}.`;
+      }
+      let result = antideriv;
+      if(lin.a !== 1){
+        result = {type:'div', a: antideriv, b: num(lin.a)};
+        ruleName += ' + u-substitution';
+        detail = `Let u = ${toStr(node.base)}; du = ${fmtNum(lin.a)}\u00B7dx, so divide by ${fmtNum(lin.a)} after integrating.`;
+      }
+      steps.push({rule: ruleName, before, after: toStr(fullSimplify(result)), detail});
+      return {ok:true, result};
+    }
+    case 'func': {
+      const before = toStr(node);
+      const lin = linearCoeffs(node.arg);
+      if(!lin || lin.a === 0) return {ok:false, reason:`"${before}" \u2014 the inside isn't a simple linear expression, so this needs substitution beyond what this tool attempts.`};
+      let antideriv;
+      if(node.name === 'sin') antideriv = {type:'neg', a:{type:'func', name:'cos', arg: node.arg}};
+      else if(node.name === 'cos') antideriv = {type:'func', name:'sin', arg: node.arg};
+      else if(node.name === 'ln') return {ok:false, reason:`"${before}" needs integration by parts, which this tool doesn't attempt.`};
+      else if(node.name === 'tan') antideriv = {type:'neg', a:{type:'func', name:'ln', arg:{type:'func', name:'cos', arg: node.arg}}};
+      else return {ok:false, reason:`Integrating "${before}" isn't supported here.`};
+      let result = antideriv;
+      let ruleName = 'Standard Integral';
+      let detail = 'A standard antiderivative.';
+      if(lin.a !== 1){
+        result = {type:'div', a: antideriv, b: num(lin.a)};
+        ruleName = 'u-substitution';
+        detail = `Let u = ${toStr(node.arg)}; du = ${fmtNum(lin.a)}\u00B7dx, so divide by ${fmtNum(lin.a)} after integrating.`;
+      }
+      steps.push({rule: ruleName, before, after: toStr(fullSimplify(result)), detail});
+      return {ok:true, result};
+    }
+  }
+}
+
+function solveIntegral(input){
+  const ast = parse(input);
+  const steps = [];
+  const r = integrate(ast, steps);
+  if(!r.ok) return {original: toStr(ast), steps, ok:false, reason: r.reason};
+  const finalAst = fullSimplify(r.result);
+  return {original: toStr(ast), steps, ok:true, final: toStr(finalAst) + ' + C'};
+}
+
+function solveDerivative(input){
+  const ast = parse(input);
+  const steps = [];
+  const dAst = diff(ast, steps);
+  const finalAst = fullSimplify(dAst);
+  return {original: toStr(ast), steps, final: toStr(finalAst)};
+}
+
+
+/* ====================== /ENGINE ====================== */
+
+let mode = 'derivative';
+const exprInput = document.getElementById('expr');
+const prefixLabel = document.getElementById('prefixLabel');
+const modeDeriv = document.getElementById('modeDeriv');
+const modeInt = document.getElementById('modeInt');
+const errorBox = document.getElementById('errorBox');
+const results = document.getElementById('results');
+const problemLabel = document.getElementById('problemLabel');
+const problemExpr = document.getElementById('problemExpr');
+const stepsLabel = document.getElementById('stepsLabel');
+const stepsEl = document.getElementById('steps');
+const answerArea = document.getElementById('answerArea');
+const examplesEl = document.getElementById('examples');
+
+const derivExamples = ['x^3 + 2x^2 - 5x + 1', 'sin(x)*cos(x)', 'e^x/x', 'sqrt(x^2+1)', 'ln(x^2+1)', '(2x+1)^5'];
+const intExamples = ['x^3 - 4x + 1', 'sin(2x)', 'e^(3x)', '1/(x+1)', '(2x+1)^4', 'cos(x)'];
+
+function renderExamples(){
+  const list = mode === 'derivative' ? derivExamples : intExamples;
+  examplesEl.innerHTML = '';
+  list.forEach(ex => {
+    const chip = document.createElement('button');
+    chip.className = 'example-chip';
+    chip.textContent = ex;
+    chip.onclick = () => { exprInput.value = ex; solve(); };
+    examplesEl.appendChild(chip);
+  });
+}
+
+function setMode(m){
+  mode = m;
+  modeDeriv.classList.toggle('active', m === 'derivative');
+  modeInt.classList.toggle('active', m === 'integral');
+  prefixLabel.textContent = m === 'derivative' ? 'd/dx' : '∫ ... dx';
+  renderExamples();
+}
+modeDeriv.onclick = () => setMode('derivative');
+modeInt.onclick = () => setMode('integral');
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function solve(){
+  const raw = exprInput.value.trim();
+  errorBox.style.display = 'none';
+  results.style.display = 'none';
+  if(!raw) return;
+
+  let r;
+  try{
+    r = mode === 'derivative' ? solveDerivative(raw) : solveIntegral(raw);
+  } catch(e){
+    errorBox.textContent = "Couldn't parse that: " + e.message + ". Check parentheses and operators.";
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  problemLabel.textContent = mode === 'derivative' ? 'Differentiating' : 'Integrating';
+  problemExpr.textContent = (mode === 'derivative' ? 'f(x) = ' : '∫ ') + r.original + (mode === 'integral' ? ' dx' : '');
+
+  stepsEl.innerHTML = '';
+  if(r.steps.length === 0){
+    stepsLabel.textContent = 'No intermediate rules needed';
+  } else {
+    stepsLabel.textContent = `Steps (${r.steps.length})`;
+    r.steps.forEach((s, i) => {
+      const div = document.createElement('div');
+      div.className = 'step';
+      div.innerHTML = `
+        <div class="num">${i+1}</div>
+        <div class="rule">${escapeHtml(s.rule)}</div>
+        <div class="transform"><span>${escapeHtml(s.before)}</span><span class="arrow">→</span><span>${escapeHtml(s.after)}</span></div>
+        <div class="detail">${escapeHtml(s.detail)}</div>
+      `;
+      stepsEl.appendChild(div);
+    });
+  }
+
+  if(mode === 'integral' && r.ok === false){
+    answerArea.innerHTML = `
+      <div class="unsupported-box">
+        <div class="label">Can't finish this one</div>
+        ${escapeHtml(r.reason)}
+      </div>`;
+  } else {
+    const finalVal = mode === 'derivative' ? r.final : r.final;
+    const label = mode === 'derivative' ? "f'(x) =" : "Result:";
+    answerArea.innerHTML = `
+      <div class="answer-box">
+        <div class="label">${mode === 'derivative' ? 'Derivative' : 'Antiderivative'}</div>
+        <div class="value">${escapeHtml(label)} ${escapeHtml(finalVal)}</div>
+      </div>`;
+  }
+
+  results.style.display = 'block';
+}
+
+document.getElementById('solveBtn').onclick = solve;
+exprInput.addEventListener('keydown', e => { if(e.key === 'Enter') solve(); });
+
+renderExamples();
+solve();
+</script>
+</body>
+</html>
